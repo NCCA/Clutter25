@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# check we have a folder passed as a command line argument
+if [ -z "$1" ]; then
+    echo "Usage: $0 <folder>"
+    exit 1
+fi
+
 echo "Generating Database"
 
 sql="DROP TABLE IF EXISTS Meshes;
