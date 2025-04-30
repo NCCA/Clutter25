@@ -22,9 +22,8 @@ persp_image BLOB
 
 echo $sql | sqlite3 ClutterTest.db
 
-#./addToDB.py -db ClutterTest.db --name "utensils" --mesh "ExportedMeshes/utensils/utensils.obj" --type obj --top "ExportedMeshes/utensils/utensilsTop.png"
 
-# Function to traverse directories and search for files
+# Function to traverse directories and search for obj files
 traverse_and_search() {
     local dir="$1"
     for file in "$dir"/*; do
