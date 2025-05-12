@@ -1,3 +1,7 @@
+"""
+Easy lookup for SQL tables.
+"""
+
 query_cols = "id,name,mesh_type,front_image,side_image,top_image,persp_image"
 drop_table = "DROP TABLE IF EXISTS Meshes;"
 new_db_sql = """Create table Meshes (
@@ -13,6 +17,8 @@ persp_image BLOB
 
 delete_row = """DELETE FROM Meshes WHERE id=?"""
 insert_new_item = """INSERT INTO Meshes (name, mesh_data, mesh_type, top_image, side_image, front_image, persp_image) VALUES (?, ?, ?, ?, ?, ?, ?)"""
+
+"""This dictionary is used to map table names to their respective SQL queries."""
 
 QUERIES = {
     "select_all": f"select {query_cols} from Meshes;",
