@@ -1,4 +1,4 @@
-query_cols = "name,mesh_type,front_image,side_image,top_image,persp_image"
+query_cols = "id,name,mesh_type,front_image,side_image,top_image,persp_image"
 drop_table = "DROP TABLE IF EXISTS Meshes;"
 new_db_sql = """Create table Meshes (
 id integer PRIMARY KEY AUTOINCREMENT,
@@ -11,4 +11,13 @@ front_image BLOB,
 persp_image BLOB
 );"""
 
-QUERIES = {"select_all": f"select {query_cols} from Meshes;", "drop_table": drop_table, "new_db": new_db_sql}
+delete_row = """DELETE FROM Meshes WHERE id=?"""
+insert_new_item = """INSERT INTO Meshes (name, mesh_data, mesh_type, top_image, side_image, front_image, persp_image) VALUES (?, ?, ?, ?, ?, ?, ?)"""
+
+QUERIES = {
+    "select_all": f"select {query_cols} from Meshes;",
+    "drop_table": drop_table,
+    "new_db": new_db_sql,
+    "insert": insert_new_item,
+    "delete_row": delete_row,
+}

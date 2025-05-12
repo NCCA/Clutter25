@@ -3,14 +3,16 @@
 import sys
 from typing import List, Optional, Tuple
 
-from ImageDataModel import ImageDataModel
-
 # from ModelViewer import ModelViewer
 from PySide6.QtGui import QCloseEvent
 from qtpy.QtGui import QPixmap
-from qtpy.QtSql import QSqlDatabase
-from qtpy.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox, QTableView, QWidget
+from qtpy.QtSql import QSqlDatabase, QSqlQuery
+from qtpy.QtWidgets import QApplication, QDialog, QFileDialog, QLabel, QMessageBox, QTableView, QWidget
 from qtpy.uic import loadUi
+
+from AddDialog import AddDialog
+from ImageDataModel import ImageDataModel
+from sql_queries import QUERIES
 
 
 class ClutterDialog(QDialog):
@@ -41,10 +43,16 @@ class ClutterDialog(QDialog):
         self.query_text.setFocus()
         self.query_text.returnPressed.connect(lambda: self.run_query(self.query_text.text()))
         self.db_view.currentChanged.connect(self.tab_view_changed)
+        self.new_db.clicked.connect(self.new_db_clicked)
+        self.delete_from_db.clicked.connect(self.delete_selected_row)
+        self.insert_to_db.clicked.connect(self.add_item)
+        self.query = ImageDataModel()
+
         # setup 2nd view widget
         loadUi("ViewWidget.ui", self.view_widget)
         self.view_widget.previous_record.clicked.connect(self.update_record)
         self.view_widget.next_record.clicked.connect(self.update_record)
+
         # self.model_viewer = ModelViewer()
         # self.db_view.addTab(self.model_viewer, "3D View")
         self.current_view_index: int = 0
@@ -56,6 +64,22 @@ class ClutterDialog(QDialog):
         :param event: The close event.
         """
         self.db.close()
+
+    def new_db_clicked(self):
+        file_name = QFileDialog.getSaveFileName(self, "Choose new db name", "./", "Clutter Base Files (*.db)")
+        if file_name[0] != "":
+            self.db.setDatabaseName(file_name[0])
+            self.db.open()
+            if not self.db.open():
+                raise RuntimeError(f"Failed to create or open database: {self.db.lastError().text()}")
+            # need to run base query here to create a new table.
+            query = QSqlQuery()
+            if not query.exec(QUERIES["drop_table"]):
+                raise RuntimeError(f"Failed to execute query: {query.lastError().text()}")
+
+            if not query.exec(QUERIES["new_db"]):
+                raise RuntimeError(f"Failed to execute query: {query.lastError().text()}")
+            self.query = ImageDataModel()
 
     def tab_view_changed(self, index: int) -> None:
         """
@@ -126,20 +150,23 @@ class ClutterDialog(QDialog):
             self.load_database(file_name[0])
         self.query_text.setFocus()
 
+    def open_and_validate(self, file_name: str, validate: bool = True) -> None:
+        if self.db.isOpen():
+            self.db.close()
+        self.db.setDatabaseName(file_name)
+        self.db.open()
+
+        if validate and "Meshes" not in self.db.tables():
+            QMessageBox.critical(self, "Critical Error", " Not a valid DB file", QMessageBox.StandardButton.Abort)
+
     def load_database(self, file_name: str) -> None:
         """
         Load a database file.
 
         :param file_name: The path to the database file.
         """
-        self.db.setDatabaseName(file_name)
-        self.connected: bool = self.db.open()
-        if "Meshes" not in self.db.tables():
-            QMessageBox.critical(self, "Critical Error", " Not a valid DB file", QMessageBox.StandardButton.Abort)
-
-        query_cols = "name,mesh_type,front_image,side_image,top_image,persp_image"
-        query_str = f"select {query_cols} from Meshes;"
-        self.run_query(query_str)
+        self.open_and_validate(file_name)
+        self.run_query(QUERIES["select_all"])
         self.current_view_index = 0
 
     def run_query(self, query_str: str) -> None:
@@ -149,17 +176,49 @@ class ClutterDialog(QDialog):
         :param query_str: The SQL query string to execute.
         """
         if len(query_str) > 0:
-            self.query = ImageDataModel()
-            self.query.setQuery(query_str)
-            self.database_view.setModel(self.query)
-            self.database_view.resizeRowsToContents()
-            self.database_view.resizeColumnsToContents()
+            try:
+                self.query = ImageDataModel()
+                self.query.setQuery(query_str)
+                self.database_view.setModel(self.query)
+                self.database_view.resizeRowsToContents()
+                self.database_view.resizeColumnsToContents()
+            except RuntimeError as e:
+                print(f"error running query {query_str}: {e}")
 
+    def add_item(self):
+        dialog = AddDialog(self.db, self)
+        if dialog.exec():
+            print(QUERIES["select_all"])
+            self.run_query(QUERIES["select_all"])
+
+    def delete_selected_row(self) -> None:
+        """
+        Delete the selected row from the database and refresh the table view.
+        Assumes the model is a QSqlTableModel and the primary key column is 'id'.
+        """
+        selected_indexes = self.database_view.selectionModel().selectedRows()
+        if not selected_indexes:
+            print("No row selected.")
+            return
+
+        row = selected_indexes[0].row()
+        model = self.query
+        id_column = 0  # Replace with the actual column number for 'id'
+        id_index = model.index(row, id_column)
+        item_id = model.data(id_index)
+
+        query = QSqlQuery()
+        query.prepare(QUERIES["delete_row"])
+        query.addBindValue(item_id)
+        if not query.exec():
+            print("Delete failed:", query.lastError().text())
+        else:
+            self.run_query(QUERIES["select_all"])
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     dialog = ClutterDialog()
-    dialog.load_database("../ClutterTest.db")
-
+    # dialog.load_database("../ClutterTest.db")
+    dialog.load_database("test.db")
     dialog.show()
     sys.exit(app.exec_())

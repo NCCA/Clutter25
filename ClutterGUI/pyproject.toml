@@ -5,9 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "numpy>=2.2.5",
     "pyside6>=6.9.0",
     "qtpy>=2.4.3",
-    "tomlkit"
+    "tomlkit",
 ]
 
 

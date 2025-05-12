@@ -66,12 +66,17 @@ class ClutterDialog(QDialog):
         self.display_persp.checkStateChanged.connect(self.update_db_view)
         self.display_top.checkStateChanged.connect(self.update_db_view)
         self.run_query_button.clicked.connect(self.run_custom_query)
-        self.query_text.returnPressed.connect(lambda:  self.run_query(self.query_text.text()))
+        self.query_text.returnPressed.connect(
+            lambda: self.run_query(self.query_text.text())
+        )
 
     def update_db_view(self):
-        if not self.db.isOpen() :
+        if not self.db.isOpen():
             QMessageBox.critical(
-                self, "Critical Error", " Database Not Open", QMessageBox.StandardButton.Abort
+                self,
+                "Critical Error",
+                " Database Not Open",
+                QMessageBox.StandardButton.Abort,
             )
 
         # Base query
@@ -108,14 +113,17 @@ class ClutterDialog(QDialog):
         self.connected = self.db.open()
         if "Meshes" not in self.db.tables():
             QMessageBox.critical(
-                self, "Critical Error", " Not a valid DB file", QMessageBox.StandardButton.Abort
+                self,
+                "Critical Error",
+                " Not a valid DB file",
+                QMessageBox.StandardButton.Abort,
             )
         query_cols = "name,mesh_type,front_image,side_image,top_image,persp_image"
         query_str = f"select {query_cols} from Meshes;"
         self.run_query(query_str)
 
-    def run_custom_query(self) :
-        if len(self.query_text.text()) > 0 :
+    def run_custom_query(self):
+        if len(self.query_text.text()) > 0:
             self.run_query(self.query_text.text())
 
     def run_query(self, query_str):
@@ -124,8 +132,6 @@ class ClutterDialog(QDialog):
         self.database_view.setModel(query)
         self.database_view.resizeRowsToContents()
         self.database_view.resizeColumnsToContents()
-
-
 
 
 if __name__ == "__main__":
