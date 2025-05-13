@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+    <file>ui/AddDialog.ui</file>
+    <file>ui/ClutterUI.ui</file>
+    <file>ui/ViewWidget.ui</file>
+</qresource>
+</RCC>

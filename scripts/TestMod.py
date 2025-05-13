@@ -1,2 +1,2 @@
-def test_mod() :
+def test_mod():
     print("working")
