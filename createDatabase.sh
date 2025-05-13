@@ -26,42 +26,45 @@ echo $sql | sqlite3 ClutterTest.db
 # Function to traverse directories and search for obj files
 traverse_and_search() {
     local dir="$1"
+    local obj_file=""
+    local top_png=""
+    local side_png=""
+    local front_png=""
+    local persp_png=""
+    local name=""
+    local type=""
+
     for file in "$dir"/*; do
         if [ -d "$file" ]; then
-            # If it's a directory, recursively call the function
             traverse_and_search "$file"
         elif [ -f "$file" ]; then
-            # If it's a file, check its extension and content
             case "$file" in
                 *.obj)
                     obj_file="$file"
-                    ;;
-                *.png)
-                    if [[ "$file" == *Front* ]]; then
-                        front_png="$file"
-                    elif [[ "$file" == *Top* ]]; then
-                        top_png="$file"
-                    elif [[ "$file" == *Persp* ]]; then
-                        persp_png="$file"
-                    elif [[ "$file" == *Side* ]]; then
-                        side_png="$file"
-                    fi
-                    # extract the extension as the type.
-                    type="${obj_file##*.}"
+                    type="obj"
                     basename="${obj_file##*/}"
-                    # Extract the last part after the last '/'
                     name="${basename%.obj}"
-
+                    ;;
+                *Top*.png)
+                    top_png="$file"
+                    ;;
+                *Side*.png)
+                    side_png="$file"
+                    ;;
+                *Front*.png)
+                    front_png="$file"
+                    ;;
+                *Persp*.png)
+                    persp_png="$file"
                     ;;
             esac
-
         fi
-
     done
-    echo "Adding $name $type $obj_file"
-    ./addToDB.py -db ClutterTest.db --name $name --mesh $obj_file --type $type --top $top_png --side $side_png --front $front_png --persp $persp_png
 
+    if [ -n "$obj_file" ]; then
+        echo "Adding $name $type $obj_file"
+        ./addToDB.py -db ClutterTest.db --name "$name" --mesh "$obj_file" --type "$type" --top "$top_png" --side "$side_png" --front "$front_png" --persp "$persp_png"
+    fi
 }
-
 # Start traversing from the current directory
 traverse_and_search "$1"

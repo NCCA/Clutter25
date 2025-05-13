@@ -2,7 +2,6 @@
 
 import sys
 
-# from ModelViewer import ModelViewer
 from qtpy.QtWidgets import QApplication
 
 from ClutterDialog import ApplicationMode, ClutterDialog

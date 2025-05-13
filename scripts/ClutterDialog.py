@@ -3,14 +3,14 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from qtpy.QtCore import QResource
+from qtpy.QtCore import QResource, QSize
 
 # from ModelViewer import ModelViewer
-from qtpy.QtGui import QCloseEvent, QPixmap
+from qtpy.QtGui import QCloseEvent, QIcon, QPixmap
 from qtpy.QtSql import QSqlDatabase, QSqlQuery
 from qtpy.QtWidgets import QDialog, QFileDialog, QLabel, QMessageBox, QTableView, QWidget
 
-import resources_rc  # noqa: F401 needed for rcc
+import rc_resources  # noqa: F401 needed for rcc
 from AddDialog import AddDialog
 from ImageDataModel import ImageDataModel
 from QUiLoaderMixin import QUiLoaderMixin
@@ -69,13 +69,13 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         """
         super(ClutterDialog, self).__init__()
         QResource.registerResource("resources.rcc")
-        self.load_ui(":/ui/ClutterUI.ui", self)
+        ui = self.load_ui(":/ui/ClutterUI.ui", self)
+        self.setLayout(ui.layout())
         self.db: QSqlDatabase = QSqlDatabase.addDatabase("QSQLITE")
         self.database_view: QTableView = QTableView(self.db_view)
         self.db_layout.addWidget(self.database_view)
-        self.view_widget: QWidget = QWidget()
+        # create an empty widget for our view tab
         self.database_view.doubleClicked.connect(self.load_mesh)
-        self.view_tab_layout.addWidget(self.view_widget)
         self.select_db.clicked.connect(self.load_db_pressed)
         self.display_front.stateChanged.connect(self.update_db_view)
         self.display_side.stateChanged.connect(self.update_db_view)
@@ -96,13 +96,18 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         }[mode]
 
         # setup 2nd view widget
-        self.load_ui(":/ui/ViewWidget.ui", self.view_widget)
+        self.view_widget: QWidget = QWidget()
+        ui = self.load_ui(":/ui/ViewWidget.ui", self.view_widget)
+        self.view_tab_layout.addWidget(ui)
+        # self.view_tab_layout.addLayout(ui.layout())
         self.view_widget.previous_record.clicked.connect(self.update_record)
+        self.view_widget.previous_record.setIcon(QIcon(":/icons/arrow_left.png"))
+        self.view_widget.previous_record.setIconSize(QSize(32, 32))
         self.view_widget.next_record.clicked.connect(self.update_record)
-
-        # self.model_viewer = ModelViewer()
-        # self.db_view.addTab(self.model_viewer, "3D View")
+        self.view_widget.next_record.setIcon(QIcon(":/icons/arrow_right.png"))
+        self.view_widget.next_record.setIconSize(QSize(32, 32))
         self.current_view_index: int = 0
+        self.resize(800, 500)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """
@@ -164,6 +169,7 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         for widget, name in images:
             img = self.query.get_data_at_index(self.current_view_index, name)
             if pixmap.loadFromData(bytes(img)):
+                pixmap.scaled(widget.size())
                 widget.setPixmap(pixmap)
 
     def update_db_view(self) -> None:
@@ -233,7 +239,8 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
                 print(f"error running query {query_str}: {e}")
 
     def add_item(self):
-        dialog = AddDialog(self.db, self)
+        dialog = AddDialog(self.db)
+        dialog.show()
         if dialog.exec():
             self.run_query(QUERIES["select_all"])
 

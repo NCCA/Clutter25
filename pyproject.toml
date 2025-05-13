@@ -13,4 +13,4 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members=["CGHomeVersion","ClutterGUI", "Testproj","NewGUI", "testgl"]
+members=["CGHomeVersion","ClutterGUI", "Testproj","NewGUI", "testgl","scripts"]

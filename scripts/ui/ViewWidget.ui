@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <ui version="4.0">
  <class>main_form</class>
  <widget class="QWidget" name="main_form">
@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>856</width>
-    <height>711</height>
+    <width>800</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>View</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
    <property name="sizeConstraint">
@@ -23,30 +23,44 @@
       <string>Records</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="1">
-       <widget class="QToolButton" name="previous_record">
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoPrevious"/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
+      <item row="1" column="4">
        <widget class="QToolButton" name="next_record">
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset theme="QIcon::ThemeIcon::GoNext"/>
+         <iconset theme="QIcon::ThemeIcon::GoNext" />
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QToolButton" name="previous_record">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::GoPrevious" />
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="num_records">
+        <property name="text">
+         <string>num records</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="num_records">
+       <widget class="QLabel" name="name_label">
         <property name="text">
-         <string>num records</string>
+         <string>Name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="type_label">
+        <property name="text">
+         <string>type</string>
         </property>
        </widget>
       </item>
@@ -62,40 +76,48 @@
       </size>
      </property>
      <property name="title">
-      <string/>
+      <string />
      </property>
-     <layout class="QGridLayout" name="gridLayout" rowstretch="1,2,2" columnstretch="0,0">
-      <item row="0" column="1">
-       <widget class="QLabel" name="type_label">
-        <property name="text">
-         <string>type</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="name_label">
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </widget>
-      </item>
+     <layout
+                        class="QGridLayout"
+                        name="gridLayout"
+                        rowstretch="0,0"
+                        columnstretch="0,0"
+                        rowminimumheight="0,0"
+                    >
       <item row="1" column="0">
-       <widget class="QLabel" name="top_image"/>
+       <widget class="QLabel" name="top_image">
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+       </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="side_image"/>
+       <widget class="QLabel" name="side_image">
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+       </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="persp_image"/>
+       <widget class="QLabel" name="persp_image">
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+       </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLabel" name="front_image"/>
+       <widget class="QLabel" name="front_image">
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

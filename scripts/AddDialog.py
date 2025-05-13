@@ -6,13 +6,13 @@ from qtpy.QtCore import QByteArray, Slot
 from qtpy.QtGui import QPixmap
 from qtpy.QtSql import QSqlDatabase, QSqlQuery
 from qtpy.QtWidgets import QApplication, QDialog, QFileDialog, QWidget
-from qtpy.uic import loadUi
 
-import resources_rc  # noqa: F401 needed for rcc
+import rc_resources  # noqa: F401 needed for rcc
+from QUiLoaderMixin import QUiLoaderMixin
 from sql_queries import QUERIES
 
 
-class AddDialog(QDialog):
+class AddDialog(QDialog, QUiLoaderMixin):
     """
     Dialog for adding a new item to the database, including images and mesh files as BLOBs.
 
@@ -35,7 +35,10 @@ class AddDialog(QDialog):
             parent (Optional[QWidget]): The parent widget, if any.
         """
         super().__init__(parent)
-        loadUi(":/ui/AddDialog.ui", self)
+        # load the dialog and add to the the dialog's
+        # layout
+        ui = self.load_ui(":/ui/AddDialog.ui", self)
+        self.setLayout(ui.layout())
         self.db: QSqlDatabase = db
         self.front_image_blob: Optional[bytes] = None
         self.side_image_blob: Optional[bytes] = None

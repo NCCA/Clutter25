@@ -4,6 +4,24 @@ import maya.cmds as cmds
 import pymel.core as pm
 
 
+def disable_grid():
+    # Get the name of the active model panel (viewport)
+    panel = cmds.getPanel(withFocus=True)
+
+    # Check if it's a model editor (viewport)
+    if cmds.getPanel(typeOf=panel) == "modelPanel":
+        cmds.modelEditor(panel, edit=True, grid=False)
+
+
+def enable_grid():
+    # Get the name of the active model panel (viewport)
+    panel = cmds.getPanel(withFocus=True)
+
+    # Check if it's a model editor (viewport)
+    if cmds.getPanel(typeOf=panel) == "modelPanel":
+        cmds.modelEditor(panel, edit=True, grid=True)
+
+
 def save_screenshots(
     path: str,
     width: int,
@@ -34,10 +52,11 @@ def save_screenshots(
                 # Set focus for the frame command
                 panel = cmds.getPanel(visiblePanels=True)
                 cmds.setFocus(panel[0])
+                disable_grid()
 
                 if frame_all:
                     pm.viewFit()
-                
+
                 # Dump to MImage
                 image = OpenMaya.MImage()
                 view.refresh()
@@ -50,3 +69,4 @@ def save_screenshots(
                 image.writeToFile(f"{path}/{base_name}{name}.png", outputFormat="png")
             except Exception as e:
                 print(f"Failed to save screenshot for {name} view: {e}")
+                enable_grid()

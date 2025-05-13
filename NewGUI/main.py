@@ -215,10 +215,11 @@ class ClutterDialog(QDialog):
         else:
             self.run_query(QUERIES["select_all"])
 
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     dialog = ClutterDialog()
-    # dialog.load_database("../ClutterTest.db")
-    dialog.load_database("test.db")
+    dialog.load_database("../ClutterTest.db")
+    # dialog.load_database("test.db")
     dialog.show()
     sys.exit(app.exec_())
