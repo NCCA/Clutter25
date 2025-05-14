@@ -1,5 +1,9 @@
 from qtpy.Qt3DCore import QEntity, QTransform
-from qtpy.Qt3DExtras import QFirstPersonCameraController, QMetalRoughMaterial, Qt3DWindow
+from qtpy.Qt3DExtras import (
+    QFirstPersonCameraController,
+    QMetalRoughMaterial,
+    Qt3DWindow,
+)
 from qtpy.Qt3DRender import QMesh
 from qtpy.QtCore import Qt, QUrl
 from qtpy.QtGui import QVector3D
@@ -47,7 +51,9 @@ class ModelViewer(QWidget):
         # Wrap the Qt3DWindow in a container
         container = self.createWindowContainer(self.view, self)
         container.setMinimumSize(400, 300)  # Set a minimum size for the container
-        container.setFocusPolicy(Qt.StrongFocus)  # Ensure the container can receive focus
+        container.setFocusPolicy(
+            Qt.StrongFocus
+        )  # Ensure the container can receive focus
         layout.addWidget(container)
         self.resize(800, 600)
 

@@ -33,12 +33,14 @@ def find_meshes(dag_path):
 
 
 def center_pivot_to_bounding_box(group_node):
-        bbox = cmds.exactWorldBoundingBox(group_node)
-        center = [(bbox[0] + bbox[3]) / 2,  # X center
-                  (bbox[1] + bbox[4]) / 2,  # Y center
-                  (bbox[2] + bbox[5]) / 2]  # Z center
+    bbox = cmds.exactWorldBoundingBox(group_node)
+    center = [
+        (bbox[0] + bbox[3]) / 2,  # X center
+        (bbox[1] + bbox[4]) / 2,  # Y center
+        (bbox[2] + bbox[5]) / 2,
+    ]  # Z center
 
-        cmds.xform(group_node, pivots=center)  # Set pivot to bounding box center
+    cmds.xform(group_node, pivots=center)  # Set pivot to bounding box center
 
 
 def center_and_scale(group_node):

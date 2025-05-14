@@ -8,7 +8,14 @@ from qtpy.QtCore import QResource, QSize
 # from ModelViewer import ModelViewer
 from qtpy.QtGui import QCloseEvent, QIcon, QPixmap
 from qtpy.QtSql import QSqlDatabase, QSqlQuery
-from qtpy.QtWidgets import QDialog, QFileDialog, QLabel, QMessageBox, QTableView, QWidget
+from qtpy.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QLabel,
+    QMessageBox,
+    QTableView,
+    QWidget,
+)
 
 import rc_resources  # noqa: F401 needed for rcc
 from AddDialog import AddDialog
@@ -44,7 +51,13 @@ class Maya(MeshImporter):
             print(out_name)
             file = Path(out_name)
             file.write_bytes(mesh_data)
-            cmds.file(out_name, gr=True, i=True, groupName="ClutterImport", type=maya_import_name[mesh_type])
+            cmds.file(
+                out_name,
+                gr=True,
+                i=True,
+                groupName="ClutterImport",
+                type=maya_import_name[mesh_type],
+            )
 
 
 class Houdini(MeshImporter):
@@ -55,7 +68,9 @@ class Standalone(MeshImporter):
     def import_mesh(self, query):
         mesh_type = query.value(1)
 
-        file_name, _ = QFileDialog.getSaveFileName(None, "Choose Filename", "./", f"Mesh Files (*.{mesh_type})")
+        file_name, _ = QFileDialog.getSaveFileName(
+            None, "Choose Filename", "./", f"Mesh Files (*.{mesh_type})"
+        )
 
         if file_name != "":
             mesh_data = query.value(0)
@@ -74,7 +89,8 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
 
         :param parent: The parent widget, if any.
         """
-        super(ClutterDialog, self).__init__()
+
+        super(ClutterDialog, self).__init__(parent)
         QResource.registerResource("resources.rcc")
         ui = self.load_ui(":/ui/ClutterUI.ui", self)
         self.setLayout(ui.layout())
@@ -88,9 +104,13 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.display_side.stateChanged.connect(self.update_db_view)
         self.display_persp.stateChanged.connect(self.update_db_view)
         self.display_top.stateChanged.connect(self.update_db_view)
-        self.run_query_button.clicked.connect(lambda: self.run_query(self.query_text.text()))
+        self.run_query_button.clicked.connect(
+            lambda: self.run_query(self.query_text.text())
+        )
         self.query_text.setFocus()
-        self.query_text.returnPressed.connect(lambda: self.run_query(self.query_text.text()))
+        self.query_text.returnPressed.connect(
+            lambda: self.run_query(self.query_text.text())
+        )
         self.db_view.currentChanged.connect(self.tab_view_changed)
         self.new_db.clicked.connect(self.new_db_clicked)
         self.delete_from_db.clicked.connect(self.delete_selected_row)
@@ -113,7 +133,9 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.view_widget.next_record.clicked.connect(self.update_record)
         self.view_widget.next_record.setIcon(QIcon(":/icons/arrow_right.png"))
         self.view_widget.next_record.setIconSize(QSize(32, 32))
-        self.view_widget.import_mesh.clicked.connect(lambda: self.load_mesh(self.current_view_index))
+        self.view_widget.import_mesh.clicked.connect(
+            lambda: self.load_mesh(self.current_view_index)
+        )
         self.current_view_index: int = 0
         self.view_widget.goto_record.valueChanged.connect(self.goto_changed)
         self.resize(1000, 700)
@@ -127,19 +149,27 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.db.close()
 
     def new_db_clicked(self):
-        file_name, _ = QFileDialog.getSaveFileName(self, "Choose new db name", "./", "Clutter Base Files (*.db)")
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Choose new db name", "./", "Clutter Base Files (*.db)"
+        )
         if file_name != "":
             self.db.setDatabaseName(file_name[0])
             self.db.open()
             if not self.db.open():
-                raise RuntimeError(f"Failed to create or open database: {self.db.lastError().text()}")
+                raise RuntimeError(
+                    f"Failed to create or open database: {self.db.lastError().text()}"
+                )
             # need to run base query here to create a new table.
             query = QSqlQuery()
             if not query.exec(QUERIES["drop_table"]):
-                raise RuntimeError(f"Failed to execute query: {query.lastError().text()}")
+                raise RuntimeError(
+                    f"Failed to execute query: {query.lastError().text()}"
+                )
 
             if not query.exec(QUERIES["new_db"]):
-                raise RuntimeError(f"Failed to execute query: {query.lastError().text()}")
+                raise RuntimeError(
+                    f"Failed to execute query: {query.lastError().text()}"
+                )
             self.query = ImageDataModel()
 
     def tab_view_changed(self, index: int) -> None:
@@ -151,23 +181,28 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         if index == 1 and self.db.isOpen():
             self.set_record()
 
-    def goto_changed(self,index) :
-        self.current_view_index=index
+    def goto_changed(self, index):
+        self.current_view_index = index
         self.set_record()
+
     def update_record(self):
         if self.sender().objectName() == "previous_record":
             self.current_view_index -= 1
         elif self.sender().objectName() == "next_record":
             self.current_view_index += 1
 
-        self.current_view_index = max(0, min(self.current_view_index, self.query.rowCount()))
+        self.current_view_index = max(
+            0, min(self.current_view_index, self.query.rowCount())
+        )
         self.view_widget.goto_record.setValue(self.current_view_index)
         self.set_record()
 
     def set_record(self):
         num_items = self.query.rowCount()
         self.view_widget.goto_record.setMaximum(num_items)
-        self.view_widget.num_records.setText(f"Num Records : {num_items} Current Record {self.current_view_index}")
+        self.view_widget.num_records.setText(
+            f"Num Records : {num_items} Current Record {self.current_view_index}"
+        )
         name = self.query.get_data_at_index(self.current_view_index, "name")
         mesh_type = self.query.get_data_at_index(self.current_view_index, "mesh_type")
         self.view_widget.name_label.setText(f"Item Name {name}")
@@ -191,7 +226,12 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         Update the database view based on the selected checkboxes.
         """
         if not self.db.isOpen():
-            QMessageBox.critical(self, "Critical Error", "Database not open", QMessageBox.StandardButton.Abort)
+            QMessageBox.critical(
+                self,
+                "Critical Error",
+                "Database not open",
+                QMessageBox.StandardButton.Abort,
+            )
         else:
             columns: List[str] = ["name", "mesh_type"]
             checkbox_column_map: List[Tuple[QCheckBox, str]] = [
@@ -212,7 +252,9 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         """
         Handle the event when the "Select DB" button is pressed.
         """
-        file_name = QFileDialog.getOpenFileName(self, "Select DB", "./", "Clutter Base Files (*.db)")
+        file_name = QFileDialog.getOpenFileName(
+            self, "Select DB", "./", "Clutter Base Files (*.db)"
+        )
         if file_name[0] != "":
             self.load_database(file_name[0])
         self.query_text.setFocus()
@@ -224,7 +266,12 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.db.open()
 
         if validate and "Meshes" not in self.db.tables():
-            QMessageBox.critical(self, "Critical Error", " Not a valid DB file", QMessageBox.StandardButton.Abort)
+            QMessageBox.critical(
+                self,
+                "Critical Error",
+                " Not a valid DB file",
+                QMessageBox.StandardButton.Abort,
+            )
 
     def load_database(self, file_name: str) -> None:
         """
@@ -267,7 +314,10 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
 
         if not selected_indexes:
             QMessageBox.critical(
-                self, "No Rows Selected", "Select Multiple Rows to Delete", QMessageBox.StandardButton.Abort
+                self,
+                "No Rows Selected",
+                "Select Multiple Rows to Delete",
+                QMessageBox.StandardButton.Abort,
             )
             return
 

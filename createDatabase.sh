@@ -20,13 +20,12 @@ front_image BLOB,
 persp_image BLOB
 );"
 
-echo $sql | sqlite3 ClutterTest.db
+echo "$sql" | sqlite3 ClutterTest.db
 
-
-# Function to traverse directories and search for obj files
+# Function to traverse directories and search for mesh files (.obj, .fbx, .usd)
 traverse_and_search() {
     local dir="$1"
-    local obj_file=""
+    local mesh_file=""
     local top_png=""
     local side_png=""
     local front_png=""
@@ -39,11 +38,21 @@ traverse_and_search() {
             traverse_and_search "$file"
         elif [ -f "$file" ]; then
             case "$file" in
-                *.obj)
-                    obj_file="$file"
-                    type="obj"
-                    basename="${obj_file##*/}"
-                    name="${basename%.obj}"
+                *.obj|*.fbx|*.usd)
+                    mesh_file="$file"
+                    case "$file" in
+                        *.obj)
+                            type="obj"
+                            ;;
+                        *.fbx)
+                            type="fbx"
+                            ;;
+                        *.usd)
+                            type="usd"
+                            ;;
+                    esac
+                    basename="${mesh_file##*/}"
+                    name="${basename%.*}"
                     ;;
                 *Top*.png)
                     top_png="$file"
@@ -61,10 +70,11 @@ traverse_and_search() {
         fi
     done
 
-    if [ -n "$obj_file" ]; then
-        echo "Adding $name $type $obj_file"
-        ./addToDB.py -db ClutterTest.db --name "$name" --mesh "$obj_file" --type "$type" --top "$top_png" --side "$side_png" --front "$front_png" --persp "$persp_png"
+    if [ -n "$mesh_file" ]; then
+        echo "Adding $name $type $mesh_file"
+        ./addToDB.py -db ClutterTest.db --name "$name" --mesh "$mesh_file" --type "$type" --top "$top_png" --side "$side_png" --front "$front_png" --persp "$persp_png"
     fi
 }
-# Start traversing from the current directory
+
+# Start traversing from the provided directory
 traverse_and_search "$1"

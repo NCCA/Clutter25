@@ -86,13 +86,23 @@ class AddDialog(QDialog, QUiLoaderMixin):
             query.addBindValue(self.item_name.text())
             query.addBindValue(QByteArray(self.mesh_blob) if self.mesh_blob else None)
             query.addBindValue(self.mesh_type.currentText())
-            query.addBindValue(QByteArray(self.top_image_blob) if self.top_image_blob else None)
-            query.addBindValue(QByteArray(self.side_image_blob) if self.side_image_blob else None)
-            query.addBindValue(QByteArray(self.front_image_blob) if self.front_image_blob else None)
-            query.addBindValue(QByteArray(self.persp_image_blob) if self.persp_image_blob else None)
+            query.addBindValue(
+                QByteArray(self.top_image_blob) if self.top_image_blob else None
+            )
+            query.addBindValue(
+                QByteArray(self.side_image_blob) if self.side_image_blob else None
+            )
+            query.addBindValue(
+                QByteArray(self.front_image_blob) if self.front_image_blob else None
+            )
+            query.addBindValue(
+                QByteArray(self.persp_image_blob) if self.persp_image_blob else None
+            )
 
             if not query.exec():
-                raise RuntimeError(f"Failed to execute query: {query.lastError().text()}")
+                raise RuntimeError(
+                    f"Failed to execute query: {query.lastError().text()}"
+                )
 
         self.accept()
 
@@ -118,7 +128,10 @@ class AddDialog(QDialog, QUiLoaderMixin):
         target_blob_name = images.get(sender_name)
 
         file_name, _ = QFileDialog.getOpenFileName(
-            self, "Select Image", self._last_dir, "Image files (*.png *.jpg *.jpeg *.bmp)"
+            self,
+            "Select Image",
+            self._last_dir,
+            "Image files (*.png *.jpg *.jpeg *.bmp)",
         )
         if file_name and target_blob_name:
             path = Path(file_name)
