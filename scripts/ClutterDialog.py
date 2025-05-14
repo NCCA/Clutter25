@@ -53,7 +53,14 @@ class Houdini(MeshImporter):
 
 class Standalone(MeshImporter):
     def import_mesh(self, query):
-        print("running standalone ", query)
+        mesh_type = query.value(1)
+
+        file_name, _ = QFileDialog.getSaveFileName(None, "Choose Filename", "./", f"Mesh Files (*.{mesh_type})")
+
+        if file_name != "":
+            mesh_data = query.value(0)
+            file = Path(file_name)
+            file.write_bytes(mesh_data)
 
 
 class ClutterDialog(QDialog, QUiLoaderMixin):
@@ -106,8 +113,10 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.view_widget.next_record.clicked.connect(self.update_record)
         self.view_widget.next_record.setIcon(QIcon(":/icons/arrow_right.png"))
         self.view_widget.next_record.setIconSize(QSize(32, 32))
+        self.view_widget.import_mesh.clicked.connect(lambda: self.load_mesh(self.current_view_index))
         self.current_view_index: int = 0
-        self.resize(800, 500)
+        self.view_widget.goto_record.valueChanged.connect(self.goto_changed)
+        self.resize(1000, 700)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """
@@ -118,8 +127,8 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         self.db.close()
 
     def new_db_clicked(self):
-        file_name = QFileDialog.getSaveFileName(self, "Choose new db name", "./", "Clutter Base Files (*.db)")
-        if file_name[0] != "":
+        file_name, _ = QFileDialog.getSaveFileName(self, "Choose new db name", "./", "Clutter Base Files (*.db)")
+        if file_name != "":
             self.db.setDatabaseName(file_name[0])
             self.db.open()
             if not self.db.open():
@@ -142,6 +151,9 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
         if index == 1 and self.db.isOpen():
             self.set_record()
 
+    def goto_changed(self,index) :
+        self.current_view_index=index
+        self.set_record()
     def update_record(self):
         if self.sender().objectName() == "previous_record":
             self.current_view_index -= 1
@@ -149,10 +161,12 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
             self.current_view_index += 1
 
         self.current_view_index = max(0, min(self.current_view_index, self.query.rowCount()))
+        self.view_widget.goto_record.setValue(self.current_view_index)
         self.set_record()
 
     def set_record(self):
         num_items = self.query.rowCount()
+        self.view_widget.goto_record.setMaximum(num_items)
         self.view_widget.num_records.setText(f"Num Records : {num_items} Current Record {self.current_view_index}")
         name = self.query.get_data_at_index(self.current_view_index, "name")
         mesh_type = self.query.get_data_at_index(self.current_view_index, "mesh_type")
@@ -246,31 +260,58 @@ class ClutterDialog(QDialog, QUiLoaderMixin):
 
     def delete_selected_row(self) -> None:
         """
-        Delete the selected row from the database and refresh the table view.
-        Assumes the model is a QSqlTableModel and the primary key column is 'id'.
+        Delete the selected row(s) from the database and refresh the table view.
+        Need to dynamically build the query as we don't know how may values
         """
         selected_indexes = self.database_view.selectionModel().selectedRows()
+
         if not selected_indexes:
-            print("No row selected.")
+            QMessageBox.critical(
+                self, "No Rows Selected", "Select Multiple Rows to Delete", QMessageBox.StandardButton.Abort
+            )
             return
 
-        row = selected_indexes[0].row()
-        model = self.query
-        id_column = 0  # Replace with the actual column number for 'id'
-        id_index = model.index(row, id_column)
-        item_id = model.data(id_index)
+        # Ask for confirmation using QMessageBox
+        reply = QMessageBox.question(
+            self,
+            "Confirm Delete",
+            "Are you sure you want to delete the selected rows?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
 
+        item_ids = []
+        for index in selected_indexes:
+            row = index.row()
+            model = self.query
+            id_column = 0  # Replace with the actual column number for 'id'
+            id_index = model.index(row, id_column)
+            item_ids.append(model.data(id_index))
+
+        # Construct the placeholder string, e.g. "?, ?, ?" for three IDs.
+        placeholders = ", ".join("?" for _ in item_ids)
+        query_str = f"DELETE FROM Meshes WHERE id IN ({placeholders})"
         query = QSqlQuery()
-        query.prepare(QUERIES["delete_row"])
-        query.addBindValue(item_id)
+        query.prepare(query_str)
+
+        # Bind each id individually
+        for item_id in item_ids:
+            query.addBindValue(item_id)
+
         if not query.exec():
             print("Delete failed:", query.lastError().text())
         else:
+            # Refresh the view or run the select query
             self.run_query(QUERIES["select_all"])
 
     def load_mesh(self, index):
         model = self.query
-        mesh_id = model.data(model.index(index.row(), 0))
+        if not isinstance(index, int):
+            index = index.row()
+
+        mesh_id = model.data(model.index(index, 0))
 
         query = QSqlQuery()
         query.prepare(QUERIES["extract_mesh_data"])

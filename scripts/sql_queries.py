@@ -15,12 +15,11 @@ front_image BLOB,
 persp_image BLOB
 );"""
 
-delete_row = """DELETE FROM Meshes WHERE id=?"""
 insert_new_item = """INSERT INTO Meshes (name, mesh_data, mesh_type, top_image, side_image, front_image, persp_image) VALUES (?, ?, ?, ?, ?, ?, ?)"""
 
 """This dictionary is used to map table names to their respective SQL queries."""
 
-extract_mesh_data ="""SELECT mesh_data,mesh_type from Meshes where ID = ?"""
+extract_mesh_data = """SELECT mesh_data,mesh_type from Meshes where ID = ?"""
 
 
 QUERIES = {
@@ -28,6 +27,5 @@ QUERIES = {
     "drop_table": drop_table,
     "new_db": new_db_sql,
     "insert": insert_new_item,
-    "delete_row": delete_row,
-    "extract_mesh_data" : extract_mesh_data
+    "extract_mesh_data": extract_mesh_data,
 }
